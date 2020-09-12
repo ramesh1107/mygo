@@ -1,0 +1,36 @@
+info: {}
+paths:
+  /products:
+    get:
+      description: Returns a list of Products
+      operationId: listProducts
+      responses:
+        "200":
+          $ref: '#/responses/productsResposne'
+      tags:
+      - products
+    post:
+      description: Create a new product
+      operationId: createProduct
+      responses:
+        "200":
+          $ref: '#/responses/productResponse'
+        "422":
+          $ref: '#/responses/errorValidation'
+        "501":
+          $ref: '#/responses/errorResponse'
+      tags:
+      - products
+    put:
+      description: Update a products details
+      operationId: updateProduct
+      responses:
+        "201":
+          $ref: '#/responses/noContentResponse'
+        "404":
+          $ref: '#/responses/errorResponse'
+        "422":
+          $ref: '#/responses/errorValidation'
+      tags:
+      - products
+swagger: "2.0"

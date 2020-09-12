@@ -1,3 +1,20 @@
+// First go handler for Crud operations
+//
+// Documentation for this API
+//
+// schemes:
+//  - https
+// basePath: /
+//
+//
+//consumes:
+//  - application/json
+// - application/xml
+//produces:
+//  - application/json
+//  - application/xml
+// swagger:meta
+
 package handlers
 
 import (
@@ -12,6 +29,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// A list of products returns in the response
+//swagger:response productsResponse
+
+type productsResponseWrapper struct {
+	//All the products in the system
+	// in: body
+	Body []data.Product
+}
 type Products struct {
 	l *log.Logger
 }
@@ -20,6 +45,13 @@ func NewProducts(l *log.Logger) *Products {
 
 	return &Products{l}
 }
+
+// swagger:route GET /products products listProducts
+// Returns a list of Products
+// responses:
+// 200:productsResposne
+
+// GetPorducts returns products from data store
 
 func (p *Products) GetProducts(rw http.ResponseWriter, h *http.Request) {
 	p.l.Println("Handle Get Products")
@@ -31,6 +63,10 @@ func (p *Products) GetProducts(rw http.ResponseWriter, h *http.Request) {
 	}
 }
 
+// swagger:route POST /products products addProducts
+// Adds a new Product to the product lists
+
+// AddProduct adds a new products to the data store
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle addition of Products")
 
@@ -42,6 +78,16 @@ func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "unable to unmarshal json- add", http.StatusBadRequest)
 	}*/
 }
+
+// swagger:route PUT /products products updateProduct
+// Update a products details
+//
+// responses:
+//	201: noContentResponse
+//  404: errorResponse
+//  422: errorValidation
+
+// Update handles PUT requests to update products
 func (p Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	// Adding Gorilla package code
 	vars := mux.Vars(r)
@@ -72,6 +118,7 @@ func (p Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 
 type KeyProduct struct{}
 
+// MiddlewareValidateProduct validates the product in the request and calls next if ok
 func (p Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		prod := data.Product{}

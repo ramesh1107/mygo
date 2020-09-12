@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/go-openapi/runtime/middleware"
+
 	"github.com/gorilla/mux"
 	"github.com/mygo/microservices/handlers"
 )
@@ -20,8 +22,8 @@ func main() {
 	//using gorilla package- Mux
 	//sm := http.NewServeMux()
 	sm := mux.NewRouter()
-	getRouter := sm.Methods("GET").Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/products", ph.GetProducts)
 
 	putRouter := sm.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
@@ -30,18 +32,20 @@ func main() {
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareValidateProduct)
+	// handler for documentation
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
 
-	//sm.Handle("/", ph)
-
-	//sm.Handle("/products", ph)
-
-	//sm.Handle("/goodbye", gh)
-	s := &http.Server{
-		Addr:         ":9090",
-		Handler:      sm,
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+	getRouter.Handle("/docs", sh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
+	// create a new server
+	s := http.Server{
+		Addr:         ":9090",           // configure the bind address
+		Handler:      sm,                // set the default handler
+		ErrorLog:     l,                 // set the logger for the server
+		ReadTimeout:  5 * time.Second,   // max time to read request from the client
+		WriteTimeout: 10 * time.Second,  // max time to write response to the client
+		IdleTimeout:  120 * time.Second, // max time for connections using TCP Keep-Alive
 	}
 
 	go func() {
