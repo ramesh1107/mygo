@@ -34,17 +34,15 @@ func (p *Products) GetProducts(rw http.ResponseWriter, h *http.Request) {
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle addition of Products")
 
-	prod := &data.Product{}
-	err := prod.FromJSON(r.Body)
-	if err != nil {
-
+	//prod := &data.Product{}
+	prod := r.Context().Value(KeyProduct{}).(data.Product)
+	data.AddProduct(&prod)
+	//err := prod.FromJSON(r.Body)
+	/*if err != nil {
 		http.Error(rw, "unable to unmarshal json- add", http.StatusBadRequest)
-
-	}
-	data.AddProduct(prod)
+	}*/
 }
-
-func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
+func (p Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	// Adding Gorilla package code
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -74,9 +72,9 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 
 type KeyProduct struct{}
 
-func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
+func (p Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		prod := &data.Product{}
+		prod := data.Product{}
 
 		err := prod.FromJSON(r.Body)
 		if err != nil {
@@ -91,7 +89,7 @@ func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 		if err != nil {
 			p.l.Println("[ERROR] validating product", err)
 			http.Error(rw,
-				fmt.Sprintln("Error validating Product: %s", err),
+				fmt.Sprintf("Error validating Product: %s", err),
 				http.StatusBadRequest)
 			return
 
